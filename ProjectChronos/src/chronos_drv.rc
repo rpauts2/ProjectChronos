@@ -1,0 +1,2 @@
+#define IDR_DRIVER_SYS 100
+IDR_DRIVER_SYS SYS "..\\build\\chronos_drv.sys"

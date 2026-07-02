@@ -1,0 +1,442 @@
+=== v9 — controller field diagnostics ===
+Init OK
+client=0x7FFFD1AA0000 es=0x57B8FB99000
+identityArray=0x57C0BE72C00 count=416
+  [0] entity=0x57C0BE09C00 team=3 namePtr=0x57C0AD88750
+
+--- Player controller i=0 ---
+  identity=0x57B99100078 entity=0x57C0BE09C00 team=3
+  namePtr(0x860) = 0x57C0AD88750
+  name = "rpauts"
+  namePtr(0x6F4) = 0x737475617072
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x00C481D9
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+  [1] entity=0x57C4BE8C000 team=3 namePtr=0x0
+
+--- Player controller i=1 ---
+  identity=0x57B99106358 entity=0x57C4BE8C000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+  [2] entity=0x57C5E354800 team=3 namePtr=0x0
+
+--- Player controller i=2 ---
+  identity=0x57B99106518 entity=0x57C5E354800 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+  [3] entity=0x57C5F29D800 team=3 namePtr=0x0
+
+--- Player controller i=3 ---
+  identity=0x57B991066D8 entity=0x57C5F29D800 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+  [4] entity=0x57C53351800 team=3 namePtr=0x0
+
+--- Player controller i=4 ---
+  identity=0x57B99106898 entity=0x57C53351800 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=5 ---
+  identity=0x57B99106A58 entity=0x57C56983800 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=6 ---
+  identity=0x57B99106C18 entity=0x57C486B9800 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=7 ---
+  identity=0x57B99106E48 entity=0x57C477BD800 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=8 ---
+  identity=0x57B99107078 entity=0x57C44726800 team=2
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=9 ---
+  identity=0x57B9910CEF8 entity=0x57C1458C000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=10 ---
+  identity=0x57C15F17938 entity=0x57C5BC02800 team=2
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=11 ---
+  identity=0x57C15F17AF8 entity=0x57C5BEC5800 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=12 ---
+  identity=0x57C15F17CB8 entity=0x57C5C348800 team=2
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=13 ---
+  identity=0x57C15F17E78 entity=0x57C5C84D000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=14 ---
+  identity=0x57C15F18038 entity=0x57C5CC40800 team=2
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=15 ---
+  identity=0x57C15F181F8 entity=0x57C5D029800 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=17 ---
+  identity=0x57B991007E8 entity=0x57C5B1AF400 team=2
+  namePtr(0x860) = 0x57C0AD88840
+  name = "Шишкин"
+  namePtr(0x6F4) = 0x73656E6950
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x01830315
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=18 ---
+  identity=0x57B99100858 entity=0x57C53D85200 team=3
+  namePtr(0x860) = 0x57C0AD884B0
+  name = "Колин"
+  namePtr(0x6F4) = 0x6E696C6F43
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x00B50319
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=19 ---
+  identity=0x57B991008C8 entity=0x57C56828C00 team=2
+  namePtr(0x860) = 0x57C0AD88420
+  name = "Мару"
+  namePtr(0x6F4) = 0x7572614D
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x00C1031D
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=20 ---
+  identity=0x57B99100938 entity=0x57C56EFB000 team=3
+  namePtr(0x860) = 0x57C0AD88600
+  name = "Мигель"
+  namePtr(0x6F4) = 0x6C657567694D
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x007C8321
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=21 ---
+  identity=0x57B991009A8 entity=0x57C575FD600 team=2
+  namePtr(0x860) = 0x57C0AD88100
+  name = "Харви"
+  namePtr(0x6F4) = 0x796576726148
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x01DD8325
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=22 ---
+  identity=0x57B99100A18 entity=0x57C57C8F400 team=3
+  namePtr(0x860) = 0x57C0AD88130
+  name = "Уолт"
+  namePtr(0x6F4) = 0x746C6157
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x013E8329
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=23 ---
+  identity=0x57B99100A88 entity=0x57C49366800 team=3
+  namePtr(0x860) = 0x57C0AD881E0
+  name = "Панама"
+  namePtr(0x6F4) = 0x616D616E6150
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x01CE80E3
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=24 ---
+  identity=0x57B99100AF8 entity=0x57C49365E00 team=3
+  namePtr(0x860) = 0x57C0AD87EF0
+  name = "Конлет"
+  namePtr(0x6F4) = 0x6874656C6E6F43
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x00DB80E7
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=25 ---
+  identity=0x57B99100B68 entity=0x57C49365400 team=3
+  namePtr(0x860) = 0x57C0AD880E0
+  name = "Риверс"
+  namePtr(0x6F4) = 0x737265766952
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x013D80EB
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=26 ---
+  identity=0x57B99100BD8 entity=0x57C49364A00 team=3
+  namePtr(0x860) = 0x57C0AD87F70
+  name = "Ларри"
+  namePtr(0x6F4) = 0x797272614C
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x00EB80EF
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=27 ---
+  identity=0x57B99100C48 entity=0x57C49364000 team=3
+  namePtr(0x860) = 0x57C0AD884E0
+  name = "Фрэнк"
+  namePtr(0x6F4) = 0x6B6E617246
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x00AA80F3
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=28 ---
+  identity=0x57B99100CB8 entity=0x57C49362200 team=3
+  namePtr(0x860) = 0x57C0AD88530
+  name = "Уолдо"
+  namePtr(0x6F4) = 0x6F646C6157
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x01E700F7
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=29 ---
+  identity=0x57B99100D28 entity=0x57C49360E00 team=3
+  namePtr(0x860) = 0x57C0AD88270
+  name = "Дайо"
+  namePtr(0x6F4) = 0x6F796144
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x015200FC
+  m_iPawnHealth(0x918) = 100
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=30 ---
+  identity=0x57B99100D98 entity=0x57C49360400 team=2
+  namePtr(0x860) = 0x57C0AD88830
+  name = "Бэсси"
+  namePtr(0x6F4) = 0x796573736142
+  name6F4 = ""
+  m_hPlayerPawn(0x90C) = 0x00100101
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 1
+
+--- Player controller i=33 ---
+  identity=0x57B99101D58 entity=0x57C0BE07E00 team=2
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=34 ---
+  identity=0x57B99101DC8 entity=0x57C0BE08800 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=40 ---
+  identity=0x57B99102068 entity=0x57C57958000 team=2
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=112 ---
+  identity=0x57B99105EF8 entity=0x57C5795E000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=113 ---
+  identity=0x57B99105FD8 entity=0x57C57950000 team=2
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=114 ---
+  identity=0x57B991060B8 entity=0x57C5C4AA000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=115 ---
+  identity=0x57B99106208 entity=0x57C57954000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=116 ---
+  identity=0x57B99106278 entity=0x57C5795A000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=118 ---
+  identity=0x57B99106438 entity=0x57C4CC6A000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=120 ---
+  identity=0x57B991065F8 entity=0x57C4CC66000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=122 ---
+  identity=0x57B991067B8 entity=0x57C4CC62000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=124 ---
+  identity=0x57B99106978 entity=0x57C4CC60000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=126 ---
+  identity=0x57B99106B38 entity=0x57C5C4A8000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=128 ---
+  identity=0x57B99106CF8 entity=0x57C5C4A6000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=130 ---
+  identity=0x57B99106F28 entity=0x57C5C4A4000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=132 ---
+  identity=0x57B99107158 entity=0x57C5C4A2000 team=2
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=142 ---
+  identity=0x57B9910D278 entity=0x57C5C4AE000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=143 ---
+  identity=0x57B9910D5F8 entity=0x57C5C4AC000 team=2
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+
+--- Player controller i=145 ---
+  identity=0x57B9910DAC8 entity=0x57C53C1C000 team=3
+  namePtr(0x860) = 0x0
+  namePtr(0x6F4) = 0x0
+  m_hPlayerPawn(0x90C) = 0x00000000
+  m_iPawnHealth(0x918) = 0
+  m_bPawnIsAlive(0x914) = 0
+total players found: 49/416
+
+Done. Sleeping 15s...
+  tick 0
+  tick 1
+  tick 2
+  tick 3
+  tick 4
+  tick 5
+  tick 6
+  tick 7
