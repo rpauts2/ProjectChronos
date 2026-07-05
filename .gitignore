@@ -6,16 +6,23 @@
 *.ilk
 *.lib
 *.exp
+*.sys
+*.res
 
 # Build directories
 build/
 obj/
 
-# Logs
+# Logs and debug
 *.log
+chronos_*.txt
+cs2_err.txt
 
 # IDE
 .vs/
 .vscode/
 *.suo
 *.user
+
+# Submodules content (reference only)
+studied_sources/
