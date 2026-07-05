@@ -535,7 +535,7 @@ void NadeEngine::LoadTricks() {
         {'W', 0.4f, 0.0f},
     }, "Jump from apps to van (run-jump)"));
     
-    database["de_mirage"] = std::vector<NadeSpot>();  // keep existing nades
+    // database["de_mirage"] intentionally left unchanged — existing nade spots preserved
     trickDatabase["de_mirage"] = mirage;
     
     // ═══════════════ de_dust2 tricks ═══════════════

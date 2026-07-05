@@ -22,6 +22,7 @@ struct CHRONOS_WRITE_REQUEST {
     uint32_t  pid;
     uint64_t  address;
     size_t    size;
+    void*     data;   // pointer to the buffer containing data to write
 };
 
 class MemoryReader {

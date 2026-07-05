@@ -199,6 +199,21 @@ int main() {
             overlay.settings.quickStopEnabled = config.GetBool("quickStopEnabled", false);
             overlay.settings.quickSwitchEnabled = config.GetBool("quickSwitchEnabled", false);
             overlay.settings.autoDefuseEnabled = config.GetBool("autoDefuseEnabled", false);
+            overlay.settings.fakeDuckEnabled = config.GetBool("fakeDuckEnabled", false);
+            overlay.settings.antiAimEnabled = config.GetBool("antiAimEnabled", false);
+            overlay.settings.antiAimPitchEnabled = config.GetBool("antiAimPitchEnabled", false);
+            overlay.settings.antiAimPitch = config.GetInt("antiAimPitch", 0);
+            overlay.settings.antiAimYaw = config.GetInt("antiAimYaw", 0);
+            overlay.settings.fakeLatencyEnabled = config.GetBool("fakeLatencyEnabled", false);
+            overlay.settings.fakeLatencyAmount = config.GetFloat("fakeLatencyAmount", 100.0f);
+            overlay.settings.knifeBotRange = config.GetFloat("knifeBotRange", 80.0f);
+            overlay.settings.clanTagEnabled = config.GetBool("clanTagEnabled", false);
+            overlay.settings.nadeHelperKey = config.GetInt("nadeHelperKey", 0x47);
+            overlay.settings.nadeHelperThrowKey = config.GetInt("nadeHelperThrowKey", 'V');
+            overlay.settings.nadeHelperRadius = config.GetFloat("nadeHelperRadius", 500.0f);
+            overlay.settings.nadeHelperAimSpeed = config.GetFloat("nadeHelperAimSpeed", 0.3f);
+            overlay.settings.autoTrickKey = config.GetInt("autoTrickKey", 0x54);
+            overlay.settings.autoTrickRadius = config.GetFloat("autoTrickRadius", 150.0f);
             for (int c = 0; c < 4; c++) {
                 overlay.settings.boxColor[c] = config.GetFloat("boxColor" + std::to_string(c), overlay.settings.boxColor[c]);
                 overlay.settings.nameColor[c] = config.GetFloat("nameColor" + std::to_string(c), overlay.settings.nameColor[c]);
@@ -274,6 +289,21 @@ int main() {
         config.SetBool("quickStopEnabled", overlay.settings.quickStopEnabled);
         config.SetBool("quickSwitchEnabled", overlay.settings.quickSwitchEnabled);
         config.SetBool("autoDefuseEnabled", overlay.settings.autoDefuseEnabled);
+        config.SetBool("fakeDuckEnabled", overlay.settings.fakeDuckEnabled);
+        config.SetBool("antiAimEnabled", overlay.settings.antiAimEnabled);
+        config.SetBool("antiAimPitchEnabled", overlay.settings.antiAimPitchEnabled);
+        config.SetInt("antiAimPitch", overlay.settings.antiAimPitch);
+        config.SetInt("antiAimYaw", overlay.settings.antiAimYaw);
+        config.SetBool("fakeLatencyEnabled", overlay.settings.fakeLatencyEnabled);
+        config.SetFloat("fakeLatencyAmount", overlay.settings.fakeLatencyAmount);
+        config.SetFloat("knifeBotRange", overlay.settings.knifeBotRange);
+        config.SetBool("clanTagEnabled", overlay.settings.clanTagEnabled);
+        config.SetInt("nadeHelperKey", overlay.settings.nadeHelperKey);
+        config.SetInt("nadeHelperThrowKey", overlay.settings.nadeHelperThrowKey);
+        config.SetFloat("nadeHelperRadius", overlay.settings.nadeHelperRadius);
+        config.SetFloat("nadeHelperAimSpeed", overlay.settings.nadeHelperAimSpeed);
+        config.SetInt("autoTrickKey", overlay.settings.autoTrickKey);
+        config.SetFloat("autoTrickRadius", overlay.settings.autoTrickRadius);
         for (int c = 0; c < 4; c++) {
             config.SetFloat("boxColor" + std::to_string(c), overlay.settings.boxColor[c]);
             config.SetFloat("nameColor" + std::to_string(c), overlay.settings.nameColor[c]);
@@ -487,7 +517,6 @@ int main() {
                             if (dist < overlay.settings.knifeBotRange) {
                                 if (!(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
                                     mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-                                    Sleep(1);
                                     mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
                                     lastKnifeTime = nowKnife;
                                 }

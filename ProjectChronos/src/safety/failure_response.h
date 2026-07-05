@@ -1,6 +1,8 @@
 #pragma once
 #include "core/types.h"
 #include <atomic>
+#include <thread>
+#include <mutex>
 
 // ==================== FAILURE RESPONSE ====================
 // Monitors for VAC scanning activity
@@ -15,8 +17,22 @@ class FailureResponse {
     DWORD lastScanTime = 0;
     int scanCount = 0;
     
+    // Thread safety for emergency resume
+    std::thread resumeThread;
+    std::mutex resumeMutex;
+    
 public:
     FailureResponse() {}
+    ~FailureResponse() {
+        std::lock_guard<std::mutex> lock(resumeMutex);
+        if (resumeThread.joinable()) {
+            resumeThread.join();
+        }
+    }
+    
+    // Non-copyable
+    FailureResponse(const FailureResponse&) = delete;
+    FailureResponse& operator=(const FailureResponse&) = delete;
     
     void Update(const GameState& state);
     bool IsVACScanning() const { return vacScanning; }

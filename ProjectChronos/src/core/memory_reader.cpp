@@ -315,7 +315,7 @@ bool MemoryReader::WriteBuffer(uintptr_t addr, void* buffer, size_t size) {
     if (!loaded || !buffer || !size) return false;
 
     // Try driver IOCTL first
-    CHRONOS_WRITE_REQUEST req = { (uint32_t)pid, (uint64_t)addr, size };
+    CHRONOS_WRITE_REQUEST req = { (uint32_t)pid, (uint64_t)addr, size, buffer };
     BYTE* respBuf = (BYTE*)malloc(sizeof(CHRONOS_READ_RESPONSE));
     DWORD returned = 0;
     bool ok = DeviceIoControl(hDriver, CHRONOS_IOCTL_WRITE,

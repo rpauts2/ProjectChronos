@@ -256,7 +256,7 @@ float Ragebot::CalcHitchance(GameState* state, int playerIdx, HitboxType hitbox,
         // Simplified: check if direction is within a cone to target hitbox
         Vector3 toTarget = targetPos - localEye;
         float distToTarget = toTarget.Length();
-        toTarget.Normalize();
+        toTarget = toTarget.Normalized();
 
         float dot = dir.x * toTarget.x + dir.y * toTarget.y + dir.z * toTarget.z;
         float angleToTarget = acosf((std::max)(-1.0f, (std::min)(1.0f, dot)));
@@ -345,12 +345,15 @@ bool Ragebot::IsVisible(GameState* state, Vector3 from, Vector3 to) {
     for (int i = 0; i < 64; i++) {
         auto& p = state->players[i];
         if (!p.IsValid()) continue;
+        // Only check the specific target (matched by position proximity)
+        float dist = p.origin.DistTo(to);
+        if (dist > 10.0f) continue;  // not the target player
         // Spotted check from memory
         bool spotted = mem->Read<bool>(p.pawnAddr + 0x1C8C);
-        if (spotted) return true;
+        return spotted;
     }
 
-    return true;
+    return false;  // target not found or not spotted
 }
 
 bool Ragebot::ShouldAutoScope(GameState* state) {

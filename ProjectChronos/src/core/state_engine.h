@@ -131,10 +131,16 @@ public:
             p.velocity = mem->Read<Vector3>(pawn + offsets.m_vecVelocity);
             p.viewOffset = mem->Read<Vector3>(pawn + offsets.m_vecViewOffset);
             p.viewAngle = mem->Read<QAngle>(pawn + offsets.m_angEyeAngles);
-            p.aimPunch = mem->Read<Vector3>(pawn + 0x1430);
+            p.aimPunch = {};
+            uintptr_t aimPunchSvc = mem->Read<uintptr_t>(pawn + offsets.m_pAimPunchServices);
+            if (aimPunchSvc) {
+                p.aimPunch = mem->Read<Vector3>(aimPunchSvc + offsets.m_aimPunchAngle);
+            }
             p.flashed = mem->Read<float>(pawn + offsets.m_flFlashDuration) > 0.1f;
             p.scoped = mem->Read<bool>(pawn + offsets.m_bIsScoped);
             p.armor = mem->Read<int>(pawn + offsets.m_ArmorValue);
+            p.simulationTime = mem->Read<float>(pawn + offsets.m_flSimulationTime);
+            p.spotted = mem->Read<bool>(pawn + offsets.m_bSpotted);
             p.weaponId = 0;
             p.ammo = 0;
             p.reserveAmmo = 0;

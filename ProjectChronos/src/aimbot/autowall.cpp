@@ -18,7 +18,7 @@ Autowall::AutowallResult Autowall::FireBullet(Vector3 start, Vector3 end, int we
     Vector3 dir = end - start;
     float totalDist = dir.Length();
     Vector3 dirNorm = dir;
-    dirNorm.Normalize();
+    dirNorm = dirNorm.Normalized();
 
     // Step through the bullet path (simplified)
     // Real implementation would use CS2's TraceLine with material detection

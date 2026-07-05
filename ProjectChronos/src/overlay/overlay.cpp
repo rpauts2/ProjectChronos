@@ -2085,7 +2085,7 @@ void Overlay::DrawChams(GameState* state) {
         }
 
         float chamsCol[4];
-        bool isVisible = true;
+        bool isVisible = p.spotted;
         if (isVisible) {
             chamsCol[0] = settings.chamsColor[0];
             chamsCol[1] = settings.chamsColor[1];

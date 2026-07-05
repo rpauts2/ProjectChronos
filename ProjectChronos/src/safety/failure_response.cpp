@@ -65,11 +65,19 @@ void FailureResponse::EmergencyShutdown() {
     // - Clear overlay
     
     // Wait 5 minutes before resuming
-    std::thread([this]() {
+    // Note: using std::thread + detach is safe here because EmergencyShutdown() is
+    // only called from Update() which owns the FailureResponse lifetime for the
+    // duration of the process. However, to be robust, we store the thread and join
+    // on destruction in case of early teardown.
+    std::lock_guard<std::mutex> lock(resumeMutex);
+    if (resumeThread.joinable()) {
+        resumeThread.join();  // finish any prior resume before starting a new one
+    }
+    resumeThread = std::thread([this]() {
         std::this_thread::sleep_for(std::chrono::minutes(5));
         allDisabled = false;
         scanCount = 0;
-    }).detach();
+    });
 }
 
 void FailureResponse::SafeResume() {

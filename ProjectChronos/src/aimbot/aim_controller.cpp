@@ -17,7 +17,6 @@ static double GetQPCSeconds() {
 AimController::AimController(MemoryReader* reader, Resolver* res, Autowall* aw)
     : mem(reader), resolver(res), autowall(aw) {
     finalAimAngle = {};
-    previousPunchAngle = {};
     lastSmoothTarget = {};
     std::memset(records, 0, sizeof(records));
     std::memset(writeIndex, 0, sizeof(writeIndex));
@@ -55,9 +54,8 @@ void AimController::Update(GameState* state, float deltaTime) {
     if (target >= 0 && settings.enabled && settings.aimbot) {
         finalAimAngle = aimAngle;
         if (settings.rcs) {
-            Vector3 punchDelta = local->aimPunch - previousPunchAngle;
-            finalAimAngle.pitch += punchDelta.x * 2.0f;
-            finalAimAngle.yaw += punchDelta.y * 2.0f;
+            finalAimAngle.pitch -= local->aimPunch.x * 2.0f;
+            finalAimAngle.yaw -= local->aimPunch.y * 2.0f;
         }
         finalAimAngle.Clamp();
 
@@ -75,16 +73,15 @@ void AimController::Update(GameState* state, float deltaTime) {
         triggerbotTimer += deltaTime;
         if (hasTarget && currentHitchance >= settings.minHitchance) {
             float delay = settings.triggerDelay / 1000.0f;
-            if (triggerbotTimer >= delay) {
-                shotFired = true;
-                triggerbotTimer = 0;
+            float fireRate = GetFireRate(currentWeaponId);
+            if (triggerbotTimer >= delay && (float)GetQPCSeconds() - lastShotTime >= fireRate) {
                 mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
                 mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                lastShotTime = (float)GetQPCSeconds();
+                triggerbotTimer = 0;
             }
         }
     }
-
-    previousPunchAngle = local->aimPunch;
 }
 
 // ==================== MOUSE AIM (external: moves crosshair via mouse_event) ====================
@@ -165,8 +162,6 @@ void AimController::ApplyMouseAim(GameState* state, QAngle targetAngle, float de
                     shotFired = true;
                 }
             }
-            lastShotTime = (float)GetQPCSeconds();
-            shotFired = true;
         }
     }
 }

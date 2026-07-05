@@ -313,7 +313,7 @@ QAngle RecoilFlow::GetNaturalRecoil(int weaponId, int shots, const QAngle& punch
 // ==================== RICOCHET AIMBOT ====================
 RicochetAimbot::Surface RicochetAimbot::FindSurface(Vector3 from, Vector3 to) {
     Vector3 mid = (from + to) * 0.5f;
-    Vector3 n = (to - from).Normalize();
+    Vector3 n = (to - from).Normalized();
     return {mid, n, 100};
 }
 
@@ -1238,7 +1238,7 @@ void QuantumAim::ExecuteShot(GameState* state) {
         int buttons = mem->Read<int>(cmd + offsets.m_nButtons);
         buttons |= 1; // IN_ATTACK
         mem->Write<int>(cmd + offsets.m_nButtons, buttons);
-        mem->Write<short>(cmd + offsets.m_nCommandNumber, (short)(cmdNum + offset));
+        mem->Write<int>(cmd + offsets.m_nCommandNumber, (int)(cmdNum + offset));
 
         // Auto-stop: zero movement on firing tick for accuracy
         mem->Write<float>(cmd + offsets.m_flForwardMove, 0.0f);

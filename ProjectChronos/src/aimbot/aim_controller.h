@@ -149,8 +149,6 @@ private:
     float GetFireRate(int weaponId) const;
 
     // ==================== SMOOTH AIM ====================
-    QAngle SmoothAim(QAngle current, QAngle target, float dt);
-    QAngle ApplyCurve(QAngle delta, float t);
     QAngle lastSmoothTarget;
     bool smoothFirstFrame = true;
     float smoothProgress = 0;
@@ -167,6 +165,5 @@ private:
     float triggerbotTimer = 0;
 
     // ==================== RCS ====================
-    Vector3 previousPunchAngle;
     int previousShotsFired = 0;
 };

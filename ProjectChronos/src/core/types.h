@@ -28,9 +28,9 @@ struct Vector3 {
     float Length2D() const { return sqrtf(x*x + y*y); }
     float DistTo(const Vector3& v) const { return (*this - v).Length(); }
     
-    Vector3 Normalize() {
+    Vector3 Normalized() const {
         float len = Length();
-        if (len > 0) { x /= len; y /= len; z /= len; }
+        if (len > 0) { return Vector3(x / len, y / len, z / len); }
         return *this;
     }
 };
@@ -280,7 +280,6 @@ struct OffsetDatabase {
     uintptr_t m_vecViewOffset = 0xE70;        // C_BaseModelEntity::m_vecViewOffset (3696) — FIXED
     uintptr_t m_vecVelocity = 0x430;          // C_BaseEntity::m_vecVelocity (1072)
     uintptr_t m_angEyeAngles = 0x3320;        // C_CSPlayerPawn::m_angEyeAngles (13088)
-    uintptr_t m_aimPunchAngle = 0;            // via m_pAimPunchServices (5264) -> predictableBaseAngle (80)
     uintptr_t m_iClip1 = 0x16D8;              // C_BasePlayerWeapon::m_iClip1 (5848)
     uintptr_t m_iShotsFired = 0x1C64;         // C_CSPlayerPawn::m_iShotsFired (7268)
     uintptr_t m_bIsScoped = 0x1C50;           // C_CSPlayerPawn::m_bIsScoped (7248)
@@ -305,6 +304,10 @@ struct OffsetDatabase {
     uintptr_t m_fSpread = 0;
     uintptr_t m_flRecoilIndex = 0x17E0;
     uintptr_t m_iItemDefinitionIndex = 0x1BA;
+    uintptr_t m_pAimPunchServices = 0x1490;   // C_CSPlayerPawn::m_pAimPunchServices
+    uintptr_t m_aimPunchAngle = 0x50;         // AimPunchServices::m_aimPunchAngle (predictableBaseAngle)
+    uintptr_t m_flSimulationTime = 0x1C8;     // C_BaseEntity::m_flSimulationTime (456)
+    uintptr_t m_bSpotted = 0x8;               // CGameSceneNode::m_bSpotted (entity visibility)
     
     // Input History (CUserCmd)
     uintptr_t m_pCommands = 0x148;
