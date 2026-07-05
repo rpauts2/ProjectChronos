@@ -79,6 +79,7 @@ struct Player {
     int team;           // 2=TT, 3=CT
     int weaponId;
     int ammo;
+    int reserveAmmo;
     int money;
     int kills, deaths, assists;
     
@@ -92,6 +93,9 @@ struct Player {
     char name[32];
     float lastShotTime;
     float spawnTime;
+    float simulationTime;
+    float duckAmount;
+    int flags;
 
     Vector3 bonePos[30];
     
@@ -121,7 +125,10 @@ struct GameState {
     int ping;
     
     float viewMatrix[16];       // 4x4 view-projection matrix for W2S
-    
+
+    // NadeEngine pointer for trajectory rendering
+    void* nadeEngine = nullptr;  // NadeEngine* — avoid circular include
+
     struct {
         bool connected;
         bool inGame;
@@ -260,34 +267,38 @@ struct OffsetDatabase {
     uintptr_t dwLocalPlayerController = 0x2320570;
     uintptr_t dwLocalPlayerPawn = 0x2341528;
     uintptr_t dwEntityList = 0x24E7680;
-    uintptr_t dwViewMatrix = 0x23477F0;
+    uintptr_t dwViewMatrix = 0x23469C0;
     uintptr_t dwGlobalVars = 0x20616D0;
     uintptr_t dwInputSystem = 0x42B50;          // inputsystem.dll
     uintptr_t dwPlantedC4 = 0x234FE28;
     uintptr_t dwGameRules = 0x2340FE8;
     
-    // Player fields (C_BaseEntity / C_CSPlayerPawn)
-    uintptr_t m_iHealth = 0x34C;         // C_BaseEntity
-    uintptr_t m_iTeamNum = 0x3EB;        // C_BaseEntity
-    uintptr_t m_vOldOrigin = 0x1390;     // C_BasePlayerPawn
-    uintptr_t m_vecViewOffset = 0xCB0;   // C_BaseModelEntity
-    uintptr_t m_vVelocity = 0x430;       // C_BaseEntity
-    uintptr_t m_angEyeAngles = 0x3320;   // C_CSPlayerPawn
-    uintptr_t m_aimPunchAngle = 0;
-    uintptr_t m_iClip1 = 0x16D8;         // C_CSWeaponBase
-    uintptr_t m_iShotsFired = 0x1C64;    // C_CSPlayerPawn
-    uintptr_t m_bIsScoped = 0x1C50;      // C_CSPlayerPawn
-    uintptr_t m_bIsDefusing = 0x1C52;    // C_CSPlayerPawn
-    uintptr_t m_flFlashDuration = 0x1400; // C_CSPlayerPawnBase
+    // Player fields (C_BaseEntity / C_CSPlayerPawn) — verified against cs2-dumper 2026-07-03
+    uintptr_t m_iHealth = 0x34C;              // C_BaseEntity::m_iHealth (844)
+    uintptr_t m_iTeamNum = 0x3EB;             // C_BaseEntity::m_iTeamNum (1003)
+    uintptr_t m_vOldOrigin = 0x1390;          // C_BasePlayerPawn::m_vOldOrigin (5008)
+    uintptr_t m_vecViewOffset = 0xE70;        // C_BaseModelEntity::m_vecViewOffset (3696) — FIXED
+    uintptr_t m_vecVelocity = 0x430;          // C_BaseEntity::m_vecVelocity (1072)
+    uintptr_t m_angEyeAngles = 0x3320;        // C_CSPlayerPawn::m_angEyeAngles (13088)
+    uintptr_t m_aimPunchAngle = 0;            // via m_pAimPunchServices (5264) -> predictableBaseAngle (80)
+    uintptr_t m_iClip1 = 0x16D8;              // C_BasePlayerWeapon::m_iClip1 (5848)
+    uintptr_t m_iShotsFired = 0x1C64;         // C_CSPlayerPawn::m_iShotsFired (7268)
+    uintptr_t m_bIsScoped = 0x1C50;           // C_CSPlayerPawn::m_bIsScoped (7248)
+    uintptr_t m_bIsDefusing = 0x1C52;         // C_CSPlayerPawn::m_bIsDefusing (7250)
+    uintptr_t m_flFlashDuration = 0x1400;     // C_CSPlayerPawnBase::m_flFlashDuration (5120)
+    uintptr_t m_fFlags = 0x3F8;               // C_BaseEntity::m_fFlags (1016)
     uintptr_t m_iHasBomb = 0;
-    uintptr_t m_szName = 0x860;          // CCSPlayerController::m_sSanitizedPlayerName (CUtlString)
-    uintptr_t m_iPawnHealth = 0x918;     // CCSPlayerController
-    uintptr_t m_hPawn = 0x90C;           // CCSPlayerController::m_hPlayerPawn (CHandle, 32-bit)
-    uintptr_t m_lifeState = 0x354;       // C_BasePlayerPawn
-    uintptr_t m_pGameSceneNode = 0x330;
+    uintptr_t m_szName = 0x860;              // CCSPlayerController::m_sSanitizedPlayerName (CUtlString)
+    uintptr_t m_iszPlayerName = 0x6F4;       // CBasePlayerController::m_iszPlayerName (1780)
+    uintptr_t m_iPawnHealth = 0x918;         // CCSPlayerController::m_iPawnHealth (2328)
+    uintptr_t m_hPawn = 0x90C;               // CCSPlayerController::m_hPlayerPawn (2316)
+    uintptr_t m_bIsLocalCtrl = 0x788;        // CBasePlayerController::m_bIsLocalPlayerController (1928) — NEW
+    uintptr_t m_lifeState = 0x354;           // C_BaseEntity::m_lifeState (852)
+    uintptr_t m_pGameSceneNode = 0x330;      // C_BaseEntity::m_pGameSceneNode (816)
     uintptr_t m_pBoneMergeCache = 0x8A0;
-    uintptr_t m_pWeaponServices = 0x11E0;
-    uintptr_t m_hActiveWeapon = 0x60;
+    uintptr_t m_pWeaponServices = 0x11E0;    // C_BasePlayerPawn::m_pWeaponServices (4576)
+    uintptr_t m_hActiveWeapon = 0x60;        // CPlayer_WeaponServices::m_hActiveWeapon (96)
+    uintptr_t m_ArmorValue = 0x1C7C;         // C_CSPlayerPawn::m_ArmorValue (7292)
     
     // Weapon (C_CSWeaponBase / C_EconItemView)
     uintptr_t m_fAccuracyPenalty = 0x17D0;
@@ -301,4 +312,12 @@ struct OffsetDatabase {
     uintptr_t m_nTickCount = 0x8;
     uintptr_t m_viewangles = 0x10;
     uintptr_t m_nButtons = 0x28;
+    uintptr_t m_subtickAttack = 0x3C;    // CSubtickMoveStep or attack flag
+    uintptr_t m_cmdSize = 0x64;          // Size of each CUserCmd entry
+    uintptr_t m_nCmdCount = 0x4C;        // InputSystem::m_nCmdCount (total commands)
+    uintptr_t m_flForwardMove = 0x1C;    // CBaseUserCmd::m_flForwardMove (auto-stop)
+    uintptr_t m_flSideMove = 0x20;       // CBaseUserCmd::m_flSideMove (auto-stop)
+    uintptr_t m_flUpMove = 0x24;         // CBaseUserCmd::m_flUpMove
+    uintptr_t m_hBomb = 0x23C0;          // C_CSPlayerPawn::m_hBomb (defuse/bomb)
+    uintptr_t m_iAccount = 0x2378;       // C_CSTeam::m_iAccount (money, needs verification)
 };

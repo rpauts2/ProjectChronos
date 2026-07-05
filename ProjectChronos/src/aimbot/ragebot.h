@@ -76,6 +76,8 @@ public:
         bool wallOnly = false;
         bool aimOnFire = true;
         bool aimAtBomb = false;
+        bool triggerbot = false;
+        float triggerbotDelay = 0.15f; // 150ms delay
         float smoothing = 1.0f;
         int hitboxSelection = 0;
         bool drawFov = true;

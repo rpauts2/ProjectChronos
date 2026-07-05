@@ -1,66 +1,94 @@
 #include "overlay.h"
 #include "core/types.h"
+#include "imgui.h"
 #include <cmath>
 
-// Bone indices (CS2 standard: Rshwmom, litware, IMXNOOBX)
-enum { BONE_PELVIS=0, BONE_SPINE_0=2, BONE_SPINE_1=3, BONE_SPINE_2=4,
-       BONE_NECK=5, BONE_HEAD=6,
-       BONE_ARM_UP_L=8, BONE_ARM_LO_L=9, BONE_HAND_L=10,
-       BONE_ARM_UP_R=13, BONE_ARM_LO_R=14, BONE_HAND_R=15,
-       BONE_LEG_UP_L=22, BONE_LEG_LO_L=23, BONE_ANKLE_L=24,
-       BONE_LEG_UP_R=25, BONE_LEG_LO_R=26, BONE_ANKLE_R=27 };
-
-static const int kBoneChains[5][5] = {
-    { BONE_HEAD, BONE_NECK, BONE_SPINE_2, BONE_SPINE_1, BONE_PELVIS },  // spine
-    { BONE_NECK, BONE_ARM_UP_L, BONE_ARM_LO_L, BONE_HAND_L },           // left arm
-    { BONE_NECK, BONE_ARM_UP_R, BONE_ARM_LO_R, BONE_HAND_R },           // right arm
-    { BONE_PELVIS, BONE_LEG_UP_L, BONE_LEG_LO_L, BONE_ANKLE_L },        // left leg
-    { BONE_PELVIS, BONE_LEG_UP_R, BONE_LEG_LO_R, BONE_ANKLE_R },        // right leg
-};
-static const int kBoneChainLen[5] = {5, 4, 4, 4, 4};
-
-static bool IsValidBonePos(const Vector3& v) {
-    if (!std::isfinite(v.x) || !std::isfinite(v.y) || !std::isfinite(v.z))
-        return false;
-    if (fabsf(v.x) > 100000.f || fabsf(v.y) > 100000.f || fabsf(v.z) > 100000.f)
-        return false;
-    if (fabsf(v.x) < 0.001f && fabsf(v.y) < 0.001f && fabsf(v.z) < 0.001f)
-        return false;
-    return true;
-}
-
-void Overlay::RenderSkeleton(GameState* state, int playerIdx) {
-    auto& p = state->players[playerIdx];
-    if (!p.IsValid()) return;
-
-    float white[4] = { 1, 1, 1, 0.6f };
-    float* vm = state->viewMatrix;
-
-    for (int chain = 0; chain < 5; chain++) {
-        int len = kBoneChainLen[chain];
-        Vector2 prevScr;
-        bool hasPrev = false;
-        for (int j = 0; j < len; j++) {
-            int bi = kBoneChains[chain][j];
-            if (!IsValidBonePos(p.bonePos[bi])) { hasPrev = false; continue; }
-            Vector2 scr;
-            if (!WorldToScreen(p.bonePos[bi], scr, vm)) { hasPrev = false; continue; }
-            if (hasPrev)
-                DrawLine((int)prevScr.x, (int)prevScr.y, (int)scr.x, (int)scr.y, white);
-            prevScr = scr;
-            hasPrev = true;
-        }
-    }
-}
+static ImDrawList* DL() { return ImGui::GetBackgroundDrawList(); }
+static ImU32 C(float* col) { return ImGui::ColorConvertFloat4ToU32(ImVec4(col[0],col[1],col[2],col[3])); }
 
 void Overlay::RenderAimbotFov(GameState* state) {
     auto* local = state->GetLocal();
     if (!local) return;
-    float purple[4] = { 0.6f, 0.2f, 0.8f, 0.3f };
-    DrawCircle(screenW / 2, screenH / 2, 150, purple, 48);
+
+    int cx = screenW / 2;
+    int cy = screenH / 2;
+    auto dl = DL();
+
+    if (settings.crosshairFovCircle) {
+        float fovR = settings.fovRadius > 0 ? settings.fovRadius : 150.0f;
+        ImU32 col = ImGui::GetColorU32(ImVec4(
+            settings.crosshairFovColor[0], settings.crosshairFovColor[1],
+            settings.crosshairFovColor[2], 0.35f));
+        dl->AddCircle(ImVec2((float)cx, (float)cy), fovR, col, 64, 1.0f);
+    }
+
+    if (settings.crosshairLines) {
+        int s = settings.crosshairSize;
+        int g = settings.crosshairGap;
+        float t = settings.crosshairThickness;
+        ImU32 col = C(settings.crosshairColor);
+        dl->AddLine(ImVec2((float)cx, (float)(cy - g)), ImVec2((float)cx, (float)(cy - g - s)), col, t);
+        dl->AddLine(ImVec2((float)cx, (float)(cy + g)), ImVec2((float)cx, (float)(cy + g + s)), col, t);
+        dl->AddLine(ImVec2((float)(cx - g), (float)cy), ImVec2((float)(cx - g - s), (float)cy), col, t);
+        dl->AddLine(ImVec2((float)(cx + g), (float)cy), ImVec2((float)(cx + g + s), (float)cy), col, t);
+    }
+
+    if (settings.crosshairDot)
+        dl->AddCircleFilled(ImVec2((float)cx, (float)cy), 2.0f, C(settings.crosshairColor), 12);
 }
 
 void Overlay::RenderWatermark() {
-    float green[4] = { 0, 1, 0.5f, 0.7f };
-    DrawText("Chronos v9", screenW - 120, 10, green, false);
+    if (!settings.showWatermark) return;
+
+    auto dl = DL();
+    float time = (float)ImGui::GetTime();
+
+    // Get FPS
+    float fps = ImGui::GetIO().Framerate;
+    char fpsBuf[16]; snprintf(fpsBuf, sizeof(fpsBuf), "%.0f FPS", fps);
+
+    // Build watermark text
+    std::string text = "CHRONOS v12  |  ";
+    text += fpsBuf;
+
+    ImVec2 sz = ImGui::CalcTextSize(text.c_str());
+    float padX = 12.0f, padY = 6.0f;
+    float boxW = sz.x + padX * 2;
+    float boxH = sz.y + padY * 2;
+    float bx = (float)screenW - boxW - 15.0f;
+    float by = 12.0f;
+
+    // Pulse effect
+    float pulse = 0.85f + 0.15f * sinf(time * 2.5f);
+
+    // Layer 1: Outer frosted glass
+    ImU32 outerBg = IM_COL32(8, 12, 30, (int)(180 * pulse));
+    dl->AddRectFilled(ImVec2(bx - 2, by - 2), ImVec2(bx + boxW + 2, by + boxH + 2), outerBg, 10.f);
+
+    // Layer 2: Inner dark glass
+    ImU32 bg = IM_COL32(4, 8, 20, (int)(220 * pulse));
+    dl->AddRectFilled(ImVec2(bx, by), ImVec2(bx + boxW, by + boxH), bg, 8.f);
+
+    // Layer 3: Frosted stripes
+    ImU32 frost = IM_COL32(255, 255, 255, (int)(4 * pulse));
+    for (float sy = by + 2; sy < by + boxH - 2; sy += 3) {
+        dl->AddLine(ImVec2(bx + 3, sy), ImVec2(bx + boxW - 3, sy), frost, 0.5f);
+    }
+
+    // Layer 4: Top highlight
+    ImU32 highlight = IM_COL32(255, 255, 255, (int)(20 * pulse));
+    dl->AddLine(ImVec2(bx + 8, by + 1), ImVec2(bx + boxW - 8, by + 1), highlight, 0.5f);
+
+    // Layer 5: Border
+    ImU32 border = IM_COL32(60, 80, 120, (int)(150 * pulse));
+    dl->AddRect(ImVec2(bx, by), ImVec2(bx + boxW, by + boxH), border, 8.f, 0, 1.f);
+
+    // Accent left bar
+    float accentPulse = 0.7f + 0.3f * sinf(time * 4.0f);
+    ImU32 accentBar = IM_COL32(138, 43, 226, (int)(200 * accentPulse));
+    dl->AddRectFilled(ImVec2(bx, by + 4), ImVec2(bx + 3, by + boxH - 4), accentBar, 1.5f);
+
+    // Text
+    float tc[4] = { settings.watermarkColor[0], settings.watermarkColor[1], settings.watermarkColor[2], settings.watermarkColor[3] * pulse };
+    DrawTextOutlined(text.c_str(), (int)(bx + padX), (int)(by + padY), tc, false);
 }

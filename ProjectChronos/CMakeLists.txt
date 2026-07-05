@@ -53,6 +53,7 @@ add_executable(chronos
     src/aimbot/resolver.cpp
     src/aimbot/autowall.cpp
     src/aimbot/quantum_aim.cpp
+    src/aimbot/aim_controller.cpp
 
     src/utils/math.cpp
     src/utils/logging.cpp

@@ -56,13 +56,13 @@ public:
     Resolver() = default;
 
     // Main resolve function
-    QAngle ResolveAngle(Player* player, QAngle aimAngle, int mode);
+    QAngle ResolveAngle(Player* player, QAngle aimAngle, int mode, int playerIndex = -1);
 
     // Individual resolver modes
     QAngle ResolveLBY(Player* player, QAngle aimAngle);
     QAngle ResolveFreestanding(Player* player, QAngle aimAngle);
-    QAngle ResolveBruteforce(Player* player, QAngle aimAngle);
-    QAngle ResolveBacktrack(Player* player, QAngle aimAngle);
+    QAngle ResolveBruteforce(Player* player, QAngle aimAngle, int playerIndex = -1);
+    QAngle ResolveBacktrack(Player* player, QAngle aimAngle, int playerIndex = -1);
 
     // Update tracking data
     void UpdatePlayerData(Player* player, int playerIndex);
