@@ -9,19 +9,21 @@ External CS2 cheat with overlay-based ESP, aimbot, grenade helper, and exploit f
 ### ESP (Wallhacks)
 - Player boxes (corner/full), health/armor bars, skeleton, name, weapon
 - Weapon icons (`[AK]`, `[AWP]`, etc.) with clip/reserve ammo
-- Glow, chams (through-wall player silhouettes), head dot
+- Glow (3-pass multi-layer), chams (through-wall silhouettes), head dot
 - Snaplines, aimline, out-of-view indicators
 - Bomb timer with progress bar
 - Spectator list (view-angle-based detection)
-- Radar overlay with rotation and teammate toggle
-- Money, defuse kit, flags display
+- Radar overlay with rotation, teammate toggle, and **bomb marker**
+- Money, defuse kit, flags, velocity display
+- **Dropped Weapons ESP** — weapon icons + distance at dead player positions
+- **Sound ESP** — off-screen directional indicators with pulsing rings
 
 ### Aimbot
 - Mouse-event-based external aim (no CUserCmd writes)
 - Smooth aim with configurable speed and curve
 - Recoil Control System (RCS) with absolute punch compensation
 - Backtrack (lag compensation via tick records)
-- Per-weapon profiles (rifle, pistol, sniper, SMG, shotgun)
+- Per-weapon profiles with **full editor UI** (FOV, smooth, hitchance, fire rate, spread)
 - Auto-fire modes: hold-to-fire, burst with fire rate limiting
 - Configurable aim key (Always On, RMB, LMB, ALT, SHIFT, etc.)
 - Deadzone (0.5°) to prevent jitter
@@ -40,14 +42,16 @@ External CS2 cheat with overlay-based ESP, aimbot, grenade helper, and exploit f
 - Configurable trigger key and radius
 
 ### Misc Features
-- **Anti-Aim**: Pitch/Yaw manipulation, Edge AA
-- **Fake Duck**: Rapid crouch toggle
-- **Quick Stop**: Releases movement keys when shooting
-- **Quick Switch**: Press Q after shot
-- **Knife Bot**: Auto-stab within range (400ms debounce)
-- **Auto Defuse**: Press USE near planted bomb
+- **BunnyHop** — auto jump when space held, on-ground check, configurable hitchance
+- **Anti-Aim** — pitch (up/down/random), yaw (left/right/back/random), edge AA
+- **Anti-Flash** — yellow screen tint + "FLASHED" overlay when flashed
+- **Fake Duck** — rapid crouch toggle
+- **Quick Stop** — releases movement keys when shooting
+- **Quick Switch** — press Q after shot
+- **Knife Bot** — auto-stab within range (400ms debounce)
+- **Auto Defuse** — press USE near planted bomb
 - **Fake Latency** (visual flag)
-- **Clan Tag** (animated)
+- **Clan Tag** (animated styles: static, scroll, fade, rainbow)
 
 ### Exploit Layer
 - Input history rewrite for silent aim
@@ -57,7 +61,7 @@ External CS2 cheat with overlay-based ESP, aimbot, grenade helper, and exploit f
 
 ### Config System
 - Save on DELETE key, load on startup
-- 80+ settings synced bidirectionally
+- 100+ settings synced bidirectionally
 - Per-feature keybinds configurable in menu
 
 ## Build
@@ -81,6 +85,17 @@ Output: `build/chronos.exe`
 3. INSERT — toggle menu
 4. DELETE — save config
 5. END — exit
+
+## Menu Tabs
+
+| Tab | Features |
+|-----|----------|
+| **ESP** | Boxes, name, health, weapon, skeleton, glow, chams, snaplines, radar, bomb timer, spectators, dropped weapons, sound ESP |
+| **Glow** | Glow style, color, chams color, head dot, velocity, scope overlay |
+| **Radar** | Radar style, scale, rotation, team toggle |
+| **Aim** | Enable, aim key, smooth, RCS, backtrack, fire mode, weapon profiles editor |
+| **Nade** | Nade helper, auto-trick, throw key, spot radius, aim speed |
+| **Misc** | BunnyHop, anti-aim, fake duck, quick stop/switch, knife bot, auto defuse, clan tag |
 
 ## Project Structure
 
@@ -108,6 +123,8 @@ ProjectChronos/
 - **ESP**: ImGui `AddRect`/`AddLine` on background draw list
 - **Offsets**: Auto-downloaded from cs2-dumper, with fallback defaults
 - **Backtrack**: Stores 64 tick records per player, returns best lag-compensated position
+- **Glow**: 3-pass multi-layer rendering (outer glow → outline → inner core)
+- **Config**: Flat file save/load with ~100+ settings
 
 ## Disclaimer
 
