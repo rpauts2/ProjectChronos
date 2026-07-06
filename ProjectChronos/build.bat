@@ -18,7 +18,7 @@ cl /std:c++20 /EHsc /Zm400 /DUSE_IMGUI=1 /Fo"%OUT%\obj\\" /Fe:"%OUT%\chronos.exe
     "%SRC%\main.cpp" ^
     "%ROOT%\kdmapper\kdmapper.cpp" ^
     "%SRC%\core\memory_reader.cpp" "%SRC%\core\state_engine.cpp" "%SRC%\core\offset_manager.cpp" "%SRC%\core\config.cpp" ^
-    "%SRC%\exploits\exploit_selector.cpp" "%SRC%\exploits\executor.cpp" "%SRC%\exploits\packet_engine.cpp" "%SRC%\exploits\input_history.cpp" "%SRC%\exploits\prediction.cpp" ^
+    "%SRC%\exploits\exploit_selector.cpp" "%SRC%\exploits\executor.cpp" "%SRC%\exploits\packet_engine.cpp" "%SRC%\exploits\input_history.cpp" "%SRC%\exploits\prediction.cpp" "%SRC%\exploits\skinchanger.cpp" ^
     "%SRC%\overlay\overlay.cpp" "%SRC%\overlay\imgui_setup.cpp" "%SRC%\overlay\menu.cpp" "%SRC%\overlay\render.cpp" ^
     "%SRC%\safety\adaptive_difficulty.cpp" "%SRC%\safety\failure_response.cpp" "%SRC%\safety\obfuscation.cpp" "%SRC%\safety\vac_shield.cpp" "%SRC%\safety\hwid_spoofer.cpp" "%SRC%\safety\antidump.cpp" ^
     "%SRC%\nade\nade_engine.cpp" ^

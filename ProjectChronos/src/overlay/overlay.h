@@ -270,6 +270,9 @@ public:
         // --- Auto Defuse ---
         bool autoDefuseEnabled = false;
 
+        // --- Skin Changer ---
+        bool skinChangerEnabled = true;
+
         // --- Clan Tag ---
         bool clanTagEnabled = false;
         int clanTagStyle = 0;

@@ -22,6 +22,7 @@
 #include "nade/nade_engine.h"
 #include "aimbot/resolver.h"
 #include "aimbot/autowall.h"
+#include "exploits/skinchanger.h"
 
 // Vectored Exception Handler — logs crash info before death
 static LONG WINAPI VehHandler(EXCEPTION_POINTERS* ep) {
@@ -149,6 +150,10 @@ int main() {
 
     VACShield vacShield;
 
+    SkinChanger skinChanger(&reader);
+    skinChanger.SetOffsets(offsets);
+    skinChanger.LoadDefaultSkins();
+
     Config config;
     auto loadConfig = [&]() {
         if (config.Load("default")) {
@@ -211,6 +216,8 @@ int main() {
             overlay.settings.fakeLatencyAmount = config.GetFloat("fakeLatencyAmount", 100.0f);
             overlay.settings.knifeBotRange = config.GetFloat("knifeBotRange", 80.0f);
             overlay.settings.clanTagEnabled = config.GetBool("clanTagEnabled", false);
+            overlay.settings.skinChangerEnabled = config.GetBool("skinChangerEnabled", true);
+            overlay.settings.thirdPerson = config.GetBool("thirdPerson", false);
             overlay.settings.nadeHelperKey = config.GetInt("nadeHelperKey", 0x47);
             overlay.settings.nadeHelperThrowKey = config.GetInt("nadeHelperThrowKey", 'V');
             overlay.settings.nadeHelperRadius = config.GetFloat("nadeHelperRadius", 500.0f);
@@ -305,6 +312,8 @@ int main() {
         config.SetFloat("fakeLatencyAmount", overlay.settings.fakeLatencyAmount);
         config.SetFloat("knifeBotRange", overlay.settings.knifeBotRange);
         config.SetBool("clanTagEnabled", overlay.settings.clanTagEnabled);
+        config.SetBool("skinChangerEnabled", overlay.settings.skinChangerEnabled);
+        config.SetBool("thirdPerson", overlay.settings.thirdPerson);
         config.SetInt("nadeHelperKey", overlay.settings.nadeHelperKey);
         config.SetInt("nadeHelperThrowKey", overlay.settings.nadeHelperThrowKey);
         config.SetFloat("nadeHelperRadius", overlay.settings.nadeHelperRadius);
@@ -575,11 +584,72 @@ int main() {
             }
         }
 
-        // 5k. Fake Latency: simulated via stale timing (external: just a visual flag)
-        // (Full implementation requires CUserCmd manipulation which is kernel-level)
+        // 5k. Fake Latency: shift CUserCmd tick count back to simulate lag
+        if (overlay.settings.fakeLatencyEnabled) {
+            auto* localFL = state ? state->GetLocal() : nullptr;
+            if (localFL && localFL->health > 0) {
+                uintptr_t client = reader.GetClient();
+                if (client) {
+                    uintptr_t inputSystem = reader.Read<uintptr_t>(client + offsets.dwInputSystem);
+                    if (inputSystem) {
+                        uintptr_t commandsPtr = reader.Read<uintptr_t>(inputSystem + offsets.m_pCommands);
+                        int cmdNum = reader.Read<int>(inputSystem + offsets.m_nCmdCount);
+                        if (commandsPtr && cmdNum > 0) {
+                            int tickShift = (int)(overlay.settings.fakeLatencyAmount / 15.0f);
+                            if (tickShift < 1) tickShift = 1;
+                            if (tickShift > 16) tickShift = 16;
+                            int idx = cmdNum % 150;
+                            uintptr_t cmdAddr = commandsPtr + idx * offsets.m_cmdSize;
+                            int curTick = reader.Read<int>(cmdAddr + offsets.m_nTickCount);
+                            reader.Write<int>(cmdAddr + offsets.m_nTickCount, curTick - tickShift);
+                        }
+                    }
+                }
+            }
+        }
 
-        // 5l. Clan Tag: basic animated tag via console (requires ConVar access)
-        // (External limitation: clan tag animation requires engine-level access)
+        // 5l. Clan Tag: animated tag via writing to controller's m_szClan
+        if (overlay.settings.clanTagEnabled) {
+            static DWORD lastClanTagTime = 0;
+            DWORD nowCT = GetTickCount();
+            if (nowCT - lastClanTagTime >= 1500) {
+                auto* localCT = state ? state->GetLocal() : nullptr;
+                if (localCT && localCT->health > 0) {
+                    static int tagPhase = 0;
+                    const char* tags[] = {
+                        "  C H R O N O S  ",
+                        " C H R O N O S  ",
+                        "CHRONOS ",
+                        " HRONOS  ",
+                        "RONOS   ",
+                        "ONOS    ",
+                        "NOS     ",
+                        "OS      ",
+                        "S       ",
+                        "        ",
+                        "S       ",
+                        "OS      ",
+                        "NOS     ",
+                        "ONOS    ",
+                        "RONOS   ",
+                        " HRONOS  ",
+                    };
+                    int tagCount = sizeof(tags) / sizeof(tags[0]);
+                    const char* tag = tags[tagPhase % tagCount];
+                    // Write clan tag string to controller via CUtlString
+                    // m_szClan is at offset in controller, it's a pointer to string
+                    uintptr_t clanStrPtr = reader.Read<uintptr_t>(localCT->controllerAddr + offsets.m_szClan);
+                    if (clanStrPtr && clanStrPtr > 0x10000) {
+                        // Write directly - CUtlString stores a char* internally
+                        char buf[32] = {};
+                        strncpy(buf, tag, 31);
+                        reader.WriteBuffer(clanStrPtr, buf, strlen(tag) + 1);
+                    }
+                    tagPhase++;
+                    lastClanTagTime = nowCT;
+                }
+            }
+        }
 
         // 5m. Auto Defuse: press USE when near planted bomb
         if (overlay.settings.autoDefuseEnabled) {
@@ -609,6 +679,39 @@ int main() {
                     }
                 }
             }
+        }
+
+        // 5n. Third Person: toggle camera via writing to camera services
+        if (overlay.settings.thirdPerson) {
+            auto* localTP = state ? state->GetLocal() : nullptr;
+            if (localTP && localTP->health > 0) {
+                uintptr_t camServices = reader.Read<uintptr_t>(localTP->pawnAddr + offsets.m_pCameraServices);
+                if (camServices && camServices > 0x10000) {
+                    // Check if already in third person, if not enable it
+                    float curDist = reader.Read<float>(camServices + offsets.m_vecThirdPersonViewOffset);
+                    if (curDist < 1.0f) {
+                        // Set third person distance
+                        reader.Write<float>(camServices + offsets.m_vecThirdPersonViewOffset, 150.0f);
+                    }
+                }
+            }
+        } else {
+            auto* localTP = state ? state->GetLocal() : nullptr;
+            if (localTP && localTP->health > 0) {
+                uintptr_t camServices = reader.Read<uintptr_t>(localTP->pawnAddr + offsets.m_pCameraServices);
+                if (camServices && camServices > 0x10000) {
+                    float curDist = reader.Read<float>(camServices + offsets.m_vecThirdPersonViewOffset);
+                    if (curDist > 1.0f) {
+                        reader.Write<float>(camServices + offsets.m_vecThirdPersonViewOffset, 0.0f);
+                    }
+                }
+            }
+        }
+
+        // 5o. Skin Changer: apply custom skins to weapons
+        skinChanger.SetEnabled(overlay.settings.skinChangerEnabled);
+        if (skinChanger.IsEnabled()) {
+            skinChanger.ApplySkins(state);
         }
 
         // 6. Get fake lag decision and forward to packet engine

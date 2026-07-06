@@ -748,6 +748,16 @@ void Overlay::RenderImGui(AimController* aimController) {
         Toggle("Dropped Weapons", &settings.showDroppedWeapons);
         ColorPick("Dropped Color", settings.droppedWeaponColor);
         Toggle("Sound ESP", &settings.showSoundESP);
+
+        ImGui::Dummy(ImVec2(0, 6));
+        Header("Skin Changer");
+        Toggle("Enable Skins", &settings.skinChangerEnabled);
+        ImGui::TextColored(Pal::dim, "Applies skins via kernel write.");
+        ImGui::TextColored(Pal::dim, "AK Redline, AWP Dragon Lore,");
+        ImGui::TextColored(Pal::dim, "Glock Fade, Deagle Blaze, etc.");
+        if (settings.skinChangerEnabled) {
+            ImGui::TextColored(Pal::accent, "Skins active - restart to apply");
+        }
     }
 
     ImGui::EndChild();

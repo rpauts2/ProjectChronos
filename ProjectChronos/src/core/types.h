@@ -323,4 +323,24 @@ struct OffsetDatabase {
     uintptr_t m_flUpMove = 0x24;         // CBaseUserCmd::m_flUpMove
     uintptr_t m_hBomb = 0x23C0;          // C_CSPlayerPawn::m_hBomb (defuse/bomb)
     uintptr_t m_iAccount = 0x2378;       // C_CSTeam::m_iAccount (money, needs verification)
+
+    // Skinchanger (C_EconEntity)
+    uintptr_t m_nFallbackPaintKit = 0x31D8;  // C_EconEntity::m_nFallbackPaintKit (12760)
+    uintptr_t m_nFallbackSeed = 0x31DC;      // C_EconEntity::m_nFallbackSeed (12764)
+    uintptr_t m_flFallbackWear = 0x31E0;     // C_EconEntity::m_flFallbackWear (12768)
+    uintptr_t m_nFallbackStatTrak = 0x31E4;  // C_EconEntity::m_nFallbackStatTrak (12772)
+    uintptr_t m_iItemIDHigh = 0x2FC0;        // C_EconEntity::m_iItemIDHigh (12224)
+    uintptr_t m_iAccountID = 0x2FC8;         // C_EconEntity::m_iAccountID (12232)
+    uintptr_t m_Initialized = 0x2FBC;        // C_EconEntity::m_Initialized (12220)
+    uintptr_t m_nFallbackDefinition = 0x31E8; // C_EconEntity::m_nFallbackDefinition
+    uintptr_t m_iClip1Secondary = 0x16DC;    // secondary clip
+
+    // Third Person / Camera
+    uintptr_t m_pCameraServices = 0x11F0;    // C_BasePlayerPawn::m_pCameraServices
+    uintptr_t m_vecThirdPersonViewOffset = 0x170; // CPlayerCameraServices
+    uintptr_t m_bThirdPerson = 0x178;        // Camera third person toggle
+
+    // Clan Tag (CCSPlayerController)
+    uintptr_t m_szClan = 0x870;             // CCSPlayerController::m_szClan (clan name string)
+    uintptr_t m_iCompetitiveRanking = 0x838;
 };
