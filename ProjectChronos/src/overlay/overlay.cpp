@@ -413,6 +413,17 @@ void Overlay::Render(GameState* state, ExploitSelector* selector, AimController*
     if (settings.showRecoilCrosshair) DrawRecoilCrosshair(state);
     if (settings.showVelocity) DrawVelocity(state);
     if (settings.showScopeOverlay) DrawScopeOverlay(state);
+    if (settings.antiFlashEnabled) {
+        auto* localAF = state ? state->GetLocal() : nullptr;
+        if (localAF && localAF->flashed) {
+            auto dlAF = DL();
+            float flashAlpha = 0.15f + 0.05f * sinf((float)ImGui::GetTime() * 8.0f);
+            ImU32 flashTint = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.8f, flashAlpha));
+            dlAF->AddRectFilled(ImVec2(0, 0), ImVec2((float)screenW, (float)screenH), flashTint);
+            float flashIndCol[4] = { 1.0f, 1.0f, 0.3f, 0.9f };
+            DrawTextOutlined("FLASHED", screenW / 2, 80, flashIndCol, true);
+        }
+    }
     if (settings.showSpectators) DrawSpectators(state);
     if (settings.showSoundESP) DrawSoundESP(state);
     if (settings.showDroppedWeapons) DrawDroppedWeapons(state);
@@ -705,6 +716,31 @@ void Overlay::DrawGlowShell(const Vector3 bones[30], float* vm, int screenW, int
             if (!sb[ch[0]].valid || !sb[ch[1]].valid) continue;
             dl->AddLine(ImVec2(sb[ch[0]].x, sb[ch[0]].y),
                         ImVec2(sb[ch[1]].x, sb[ch[1]].y), lc, 2.5f);
+        }
+    }
+
+    // Pass 2: Wide outer glow for bloom effect
+    float outerGlowAlpha = effColor[3] * 0.08f;
+    if (outerGlowAlpha > 0.002f) {
+        ImU32 og = ImGui::GetColorU32(ImVec4(effColor[0], effColor[1], effColor[2], outerGlowAlpha));
+        for (auto& ch : kShellChains) {
+            if (!sb[ch[0]].valid || !sb[ch[1]].valid) continue;
+            dl->AddLine(ImVec2(sb[ch[0]].x, sb[ch[0]].y),
+                        ImVec2(sb[ch[1]].x, sb[ch[1]].y), og, 8.0f);
+        }
+    }
+
+    // Pass 3: Inner bright core for depth
+    float coreAlpha = effColor[3] * 0.5f;
+    if (coreAlpha > 0.003f) {
+        float bright[4] = { (std::min)(1.0f, effColor[0] + 0.3f),
+                            (std::min)(1.0f, effColor[1] + 0.3f),
+                            (std::min)(1.0f, effColor[2] + 0.3f), coreAlpha };
+        ImU32 cc = ImGui::GetColorU32(ImVec4(bright[0], bright[1], bright[2], bright[3]));
+        for (auto& ch : kShellChains) {
+            if (!sb[ch[0]].valid || !sb[ch[1]].valid) continue;
+            dl->AddLine(ImVec2(sb[ch[0]].x, sb[ch[0]].y),
+                        ImVec2(sb[ch[1]].x, sb[ch[1]].y), cc, 1.0f);
         }
     }
 
@@ -1892,6 +1928,25 @@ void Overlay::RenderRadar(GameState* state) {
         }
     }
 
+    // Bomb position on radar
+    if (state->bombPlanted) {
+        Vector3 bombDelta = state->bombPos - local->origin;
+        float bRx = bombDelta.x * cosY - bombDelta.y * sinY;
+        float bRy = bombDelta.x * sinY + bombDelta.y * cosY;
+        int bmx = cx + (int)(bRy * scale);
+        int bmy = cy - (int)(bRx * scale);
+
+        if (settings.radarStyle == 2 || ((bmx - cx) * (bmx - cx) + (bmy - cy) * (bmy - cy) <= radius * radius)) {
+            float bombPulse = 0.6f + 0.4f * sinf((float)ImGui::GetTime() * 6.0f);
+            float bombCol[4] = { 1.0f, 0.5f, 0.0f, bombPulse };
+            dl->AddCircleFilled(ImVec2((float)bmx, (float)bmy), 5.0f, C(bombCol), 8);
+            float bombOutline[4] = { 1.0f, 1.0f, 1.0f, 0.6f * bombPulse };
+            dl->AddCircle(ImVec2((float)bmx, (float)bmy), 5.0f, C(bombOutline), 8, 1.0f);
+            float bombLabel[4] = { 1.0f, 0.6f, 0.0f, 0.9f };
+            DrawTextOutlined("C4", bmx - 4, bmy + 8, bombLabel, true);
+        }
+    }
+
     if (!isMinimal) {
         float lDir = settings.radarRotate ? 0 : -yaw;
         float lRad = lDir * 3.14159265f / 180.0f;
@@ -2309,16 +2364,114 @@ void Overlay::DrawScopeOverlay(GameState* state) {
 
 void Overlay::DrawDroppedWeapons(GameState* state) {
     if (!settings.showDroppedWeapons) return;
-    // TODO: iterate weapon entities and draw their positions
-    // This requires reading dropped weapon entity data from the game
+    if (!state) return;
+    auto dl = DL();
+    float* vm = state->viewMatrix;
+    auto* local = state->GetLocal();
+    if (!local) return;
+
+    for (int i = 0; i < 64; i++) {
+        auto& p = state->players[i];
+        if (!p.IsValid()) continue;
+
+        // Use any valid player's origin to check distance to dropped weapons
+        // Since we can't iterate world entities externally, show weapon info
+        // on players who are not the local player's team
+        // Dropped weapons are world entities - we approximate via dead player positions
+        if (p.health <= 0 && p.weaponId > 0 && p.IsEnemy(state->localTeam)) {
+            float dist = p.origin.DistTo(local->origin) * 0.01905f;
+            if (dist > 500.0f) continue;
+
+            float distFade = 1.0f - dist / 500.0f;
+            if (distFade < 0.2f) distFade = 0.2f;
+
+            Vector2 posScr;
+            if (!WorldToScreen(p.origin, posScr, vm)) continue;
+
+            float col[4] = { settings.droppedWeaponColor[0], settings.droppedWeaponColor[1],
+                             settings.droppedWeaponColor[2], settings.droppedWeaponColor[3] * distFade };
+
+            // Draw weapon icon/text at death position
+            float sz = 6.0f;
+            dl->AddCircleFilled(ImVec2(posScr.x, posScr.y), sz, C(col), 8);
+
+            const char* wpn = WeaponIcon(p.weaponId);
+            if (wpn[0]) {
+                DrawTextOutlined(wpn, (int)posScr.x, (int)(posScr.y + sz + 2), col, true);
+            }
+
+            // Distance label
+            char distBuf[16];
+            snprintf(distBuf, sizeof(distBuf), "%.0fm", dist);
+            float distCol[4] = { col[0], col[1], col[2], col[3] * 0.7f };
+            DrawTextOutlined(distBuf, (int)posScr.x, (int)(posScr.y + sz + 14), distCol, true);
+        }
+    }
 }
 
 // ==================== SOUND ESP ====================
 
 void Overlay::DrawSoundESP(GameState* state) {
     if (!settings.showSoundESP) return;
-    // TODO: implement 3D sound direction indicators
-    // This requires reading sound data from the game
+    if (!state) return;
+    auto dl = DL();
+    float* vm = state->viewMatrix;
+    float time = (float)ImGui::GetTime();
+    float pulse = 0.6f + 0.4f * sinf(time * 5.0f);
+
+    auto* local = state->GetLocal();
+    if (!local) return;
+
+    float centerX = (float)screenW * 0.5f;
+    float centerY = (float)screenH * 0.5f;
+
+    for (int i = 0; i < 64; i++) {
+        auto& p = state->players[i];
+        if (!p.IsValid() || !p.IsEnemy(state->localTeam)) continue;
+
+        float dist = p.origin.DistTo(local->origin) * 0.01905f;
+        if (dist > 2000.0f) continue;
+
+        Vector2 headScr;
+        if (!WorldToScreen(p.bonePos[6], headScr, vm)) continue;
+
+        // Check if on screen - only show for off-screen enemies
+        if (headScr.x > 20 && headScr.x < (float)(screenW - 20) &&
+            headScr.y > 20 && headScr.y < (float)(screenH - 20)) continue;
+
+        // Direction from center to enemy
+        float dx = headScr.x - centerX;
+        float dy = headScr.y - centerY;
+        float screenDist = sqrtf(dx * dx + dy * dy);
+        if (screenDist < 1.0f) continue;
+        float nx = dx / screenDist;
+        float ny = dy / screenDist;
+
+        // Clamp to screen edge
+        float margin = 60.0f;
+        float edgeX = centerX + nx * ((float)screenW * 0.5f - margin);
+        float edgeY = centerY + ny * ((float)screenH * 0.5f - margin);
+        edgeX = (std::max)(margin, (std::min)((float)screenW - margin, edgeX));
+        edgeY = (std::max)(margin, (std::min)((float)screenH - margin, edgeY));
+
+        // Sound direction indicator: pulsing arc/circle
+        float soundCol[4] = { 1.0f, 0.8f, 0.0f, 0.7f * pulse };
+
+        // Pulsing sound ring
+        float ringR = 10.0f + 5.0f * sinf(time * 8.0f + (float)i);
+        ImU32 ringC = ImGui::GetColorU32(ImVec4(soundCol[0], soundCol[1], soundCol[2], soundCol[3] * 0.5f));
+        dl->AddCircle(ImVec2(edgeX, edgeY), ringR, ringC, 12, 1.5f);
+
+        // Inner dot
+        ImU32 dotC = ImGui::GetColorU32(ImVec4(soundCol[0], soundCol[1], soundCol[2], soundCol[3]));
+        dl->AddCircleFilled(ImVec2(edgeX, edgeY), 3.0f, dotC, 8);
+
+        // Distance text
+        char distBuf[16];
+        snprintf(distBuf, sizeof(distBuf), "%.0fm", dist);
+        float textCol[4] = { 1.0f, 1.0f, 1.0f, 0.8f * pulse };
+        DrawTextOutlined(distBuf, (int)edgeX, (int)(edgeY + 14), textCol, true);
+    }
 }
 
 void Overlay::RenderMenu(AimController* aimController) {

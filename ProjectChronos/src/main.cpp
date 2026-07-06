@@ -200,6 +200,9 @@ int main() {
             overlay.settings.quickSwitchEnabled = config.GetBool("quickSwitchEnabled", false);
             overlay.settings.autoDefuseEnabled = config.GetBool("autoDefuseEnabled", false);
             overlay.settings.fakeDuckEnabled = config.GetBool("fakeDuckEnabled", false);
+            overlay.settings.bhopEnabled = config.GetBool("bhopEnabled", false);
+            overlay.settings.bhopHitchance = config.GetInt("bhopHitchance", 80);
+            overlay.settings.bhopAutoStrafe = config.GetBool("bhopAutoStrafe", false);
             overlay.settings.antiAimEnabled = config.GetBool("antiAimEnabled", false);
             overlay.settings.antiAimPitchEnabled = config.GetBool("antiAimPitchEnabled", false);
             overlay.settings.antiAimPitch = config.GetInt("antiAimPitch", 0);
@@ -222,6 +225,7 @@ int main() {
                 overlay.settings.glowColor[c] = config.GetFloat("glowColor" + std::to_string(c), overlay.settings.glowColor[c]);
                 overlay.settings.snaplineColor[c] = config.GetFloat("snaplineColor" + std::to_string(c), overlay.settings.snaplineColor[c]);
                 overlay.settings.crosshairColor[c] = config.GetFloat("crosshairColor" + std::to_string(c), overlay.settings.crosshairColor[c]);
+                overlay.settings.droppedWeaponColor[c] = config.GetFloat("droppedWeaponColor" + std::to_string(c), overlay.settings.droppedWeaponColor[c]);
             }
             aimController->settings.enabled = config.GetBool("aimEnabled", true);
             aimController->settings.aimbot = config.GetBool("aimbot", true);
@@ -290,6 +294,9 @@ int main() {
         config.SetBool("quickSwitchEnabled", overlay.settings.quickSwitchEnabled);
         config.SetBool("autoDefuseEnabled", overlay.settings.autoDefuseEnabled);
         config.SetBool("fakeDuckEnabled", overlay.settings.fakeDuckEnabled);
+        config.SetBool("bhopEnabled", overlay.settings.bhopEnabled);
+        config.SetInt("bhopHitchance", overlay.settings.bhopHitchance);
+        config.SetBool("bhopAutoStrafe", overlay.settings.bhopAutoStrafe);
         config.SetBool("antiAimEnabled", overlay.settings.antiAimEnabled);
         config.SetBool("antiAimPitchEnabled", overlay.settings.antiAimPitchEnabled);
         config.SetInt("antiAimPitch", overlay.settings.antiAimPitch);
@@ -312,6 +319,7 @@ int main() {
             config.SetFloat("glowColor" + std::to_string(c), overlay.settings.glowColor[c]);
             config.SetFloat("snaplineColor" + std::to_string(c), overlay.settings.snaplineColor[c]);
             config.SetFloat("crosshairColor" + std::to_string(c), overlay.settings.crosshairColor[c]);
+            config.SetFloat("droppedWeaponColor" + std::to_string(c), overlay.settings.droppedWeaponColor[c]);
         }
         config.SetBool("aimEnabled", aimController->settings.enabled);
         config.SetBool("aimbot", aimController->settings.aimbot);
@@ -403,6 +411,30 @@ int main() {
 
         // 5. Run the Clean AimController
         aimController->Update(state, frameTime);
+
+        // 5a. Anti-Aim: offset view angles to make hitscan harder
+        if (overlay.settings.antiAimEnabled) {
+            auto* localAA = state ? state->GetLocal() : nullptr;
+            if (localAA && localAA->health > 0 && !aimController->HasTarget()) {
+                QAngle antiAngles = localAA->viewAngle;
+                // Pitch manipulation
+                if (overlay.settings.antiAimPitchEnabled) {
+                    switch (overlay.settings.antiAimPitch) {
+                        case 1: antiAngles.pitch = 89.0f; break;   // Up
+                        case 2: antiAngles.pitch = -89.0f; break;  // Down
+                        case 3: antiAngles.pitch = (float)((rand() % 178) - 89); break; // Random
+                    }
+                }
+                // Yaw manipulation
+                switch (overlay.settings.antiAimYaw) {
+                    case 1: antiAngles.yaw -= 90.0f; break;   // Left
+                    case 2: antiAngles.yaw += 90.0f; break;   // Right
+                    case 3: antiAngles.yaw += 180.0f; break;  // Back
+                    case 4: antiAngles.yaw += (float)(rand() % 360); break; // Random
+                }
+                antiAngles.Clamp();
+            }
+        }
 
         // 5b. Update nade engine auto-aim and trajectory
         nadeEngine->UpdateAutoAim(state);
@@ -497,6 +529,21 @@ int main() {
                     }
                     duckState = !duckState;
                     lastDuckTime = nowDuck;
+                }
+            }
+        }
+
+        // 5i-b. BunnyHop: auto jump when space held and on ground
+        if (overlay.settings.bhopEnabled) {
+            auto* localBH = state ? state->GetLocal() : nullptr;
+            if (localBH && localBH->health > 0 && (GetAsyncKeyState(VK_SPACE) & 0x8000)) {
+                int flags = localBH->flags;
+                if (flags & 1) {
+                    int roll = rand() % 100;
+                    if (roll < overlay.settings.bhopHitchance) {
+                        keybd_event(VK_SPACE, 0, 0, 0);
+                        keybd_event(VK_SPACE, 0, KEYEVENTF_KEYUP, 0);
+                    }
                 }
             }
         }

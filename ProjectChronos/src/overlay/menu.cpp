@@ -548,11 +548,35 @@ void Overlay::RenderImGui(AimController* aimController) {
             SubHeader("Weapon Profiles");
             Toggle("Use Profiles", &qs.useWeaponProfiles);
             if (qs.useWeaponProfiles) {
-                ImGui::TextColored(Pal::dim, "Rifle: FOV %.0f  Speed %.0f", qs.rifleProfile.fov, qs.rifleProfile.smoothSpeed);
-                ImGui::TextColored(Pal::dim, "Pistol: FOV %.0f  Speed %.0f", qs.pistolProfile.fov, qs.pistolProfile.smoothSpeed);
-                ImGui::TextColored(Pal::dim, "Sniper: FOV %.0f  Speed %.0f", qs.sniperProfile.fov, qs.sniperProfile.smoothSpeed);
-                ImGui::TextColored(Pal::dim, "SMG: FOV %.0f  Speed %.0f", qs.smgProfile.fov, qs.smgProfile.smoothSpeed);
-                ImGui::TextColored(Pal::dim, "Shotgun: FOV %.0f  Speed %.0f", qs.shotgunProfile.fov, qs.shotgunProfile.smoothSpeed);
+                const char* profileNames[] = { "Rifle", "Pistol", "Sniper", "SMG", "Shotgun" };
+                static int selectedProfile = 0;
+                Combo("Profile", &selectedProfile, profileNames, 5);
+
+                AimController::WeaponProfile* prof = nullptr;
+                switch (selectedProfile) {
+                    case 0: prof = &qs.rifleProfile; break;
+                    case 1: prof = &qs.pistolProfile; break;
+                    case 2: prof = &qs.sniperProfile; break;
+                    case 3: prof = &qs.smgProfile; break;
+                    case 4: prof = &qs.shotgunProfile; break;
+                }
+                if (prof) {
+                    char label[64];
+                    snprintf(label, sizeof(label), "FOV##%s", profileNames[selectedProfile]);
+                    SliderF(label, &prof->fov, 1.0f, 180.0f, "%.0f");
+                    snprintf(label, sizeof(label), "Smooth Speed##%s", profileNames[selectedProfile]);
+                    SliderF(label, &prof->smoothSpeed, 1.0f, 50.0f, "%.0f");
+                    snprintf(label, sizeof(label), "Max Angle##%s", profileNames[selectedProfile]);
+                    SliderF(label, &prof->maxAnglePerFrame, 1.0f, 45.0f, "%.0f");
+                    snprintf(label, sizeof(label), "Min HC##%s", profileNames[selectedProfile]);
+                    SliderF(label, &prof->minHitchance, 1.0f, 100.0f, "%.0f");
+                    snprintf(label, sizeof(label), "Max Dist##%s", profileNames[selectedProfile]);
+                    SliderF(label, &prof->maxDist, 256.0f, 16384.0f, "%.0f");
+                    snprintf(label, sizeof(label), "Fire Rate##%s", profileNames[selectedProfile]);
+                    SliderF(label, &prof->fireRate, 0.01f, 2.0f, "%.2fs");
+                    snprintf(label, sizeof(label), "Spread##%s", profileNames[selectedProfile]);
+                    SliderF(label, &prof->spread, 0.01f, 0.50f, "%.2f");
+                }
             }
 
             ImGui::Dummy(ImVec2(0, 3));
