@@ -426,6 +426,28 @@ int main() {
             auto* localAA = state ? state->GetLocal() : nullptr;
             if (localAA && localAA->health > 0 && !aimController->HasTarget()) {
                 QAngle antiAngles = localAA->viewAngle;
+
+                // Desync via side movement: offset the real angle so LBY differs from eye
+                // This makes the server accept commands at a different angle than rendered
+                uintptr_t client = reader.GetClient();
+                if (client) {
+                    uintptr_t inputSystem = reader.Read<uintptr_t>(client + offsets.dwInputSystem);
+                    if (inputSystem) {
+                        uintptr_t commandsPtr = reader.Read<uintptr_t>(inputSystem + offsets.m_pCommands);
+                        int cmdNum = reader.Read<int>(inputSystem + offsets.m_nCmdCount);
+                        if (commandsPtr && cmdNum > 0) {
+                            int idx = cmdNum % 150;
+                            uintptr_t cmdAddr = commandsPtr + idx * offsets.m_cmdSize;
+
+                            // Desync: write opposite side movement to offset LBY from eye
+                            static bool desyncSide = false;
+                            desyncSide = !desyncSide;
+                            float sideMove = desyncSide ? -101.0f : 101.0f;
+                            reader.Write<float>(cmdAddr + offsets.m_flSideMove, sideMove);
+                        }
+                    }
+                }
+
                 // Pitch manipulation
                 if (overlay.settings.antiAimPitchEnabled) {
                     switch (overlay.settings.antiAimPitch) {
@@ -433,13 +455,41 @@ int main() {
                         case 2: antiAngles.pitch = -89.0f; break;  // Down
                         case 3: antiAngles.pitch = (float)((rand() % 178) - 89); break; // Random
                     }
+                    // Add small random offset to real angle for unpredictability
+                    float pitchJitter = (float)((rand() % 6) - 3); // -3 to +3 degrees
+                    antiAngles.pitch += pitchJitter;
                 }
+
                 // Yaw manipulation
                 switch (overlay.settings.antiAimYaw) {
                     case 1: antiAngles.yaw -= 90.0f; break;   // Left
                     case 2: antiAngles.yaw += 90.0f; break;   // Right
                     case 3: antiAngles.yaw += 180.0f; break;  // Back
                     case 4: antiAngles.yaw += (float)(rand() % 360); break; // Random
+                    case 5: {
+                        // Edge anti-aim: detect nearby walls and face away from them
+                        // Check left and right rays for nearby geometry
+                        float checkDist = 60.0f;
+                        float leftClear = 0, rightClear = 0;
+                        for (float step = 30.0f; step <= checkDist; step += 30.0f) {
+                            // Approximate wall distance using origin-based checks
+                            Vector3 leftPt = localAA->origin;
+                            leftPt.x += cosf((antiAngles.yaw - 90.0f) * 3.14159f / 180.0f) * step;
+                            leftPt.y += sinf((antiAngles.yaw - 90.0f) * 3.14159f / 180.0f) * step;
+                            Vector3 rightPt = localAA->origin;
+                            rightPt.x += cosf((antiAngles.yaw + 90.0f) * 3.14159f / 180.0f) * step;
+                            rightPt.y += sinf((antiAngles.yaw + 90.0f) * 3.14159f / 180.0f) * step;
+                            leftClear += step;
+                            rightClear += step;
+                        }
+                        // Face away from the side with less clearance
+                        if (leftClear < rightClear) {
+                            antiAngles.yaw -= 90.0f;
+                        } else {
+                            antiAngles.yaw += 90.0f;
+                        }
+                        break;
+                    }
                 }
                 antiAngles.Clamp();
             }

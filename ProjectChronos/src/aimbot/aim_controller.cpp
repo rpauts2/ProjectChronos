@@ -387,6 +387,9 @@ bool AimController::GetBestBacktrack(int playerIdx, Vector3& outPos) {
     int refIdx = (wi - 1 + MAX_RECORDS) % MAX_RECORDS;
     float maxTime = settings.backtrackMaxTime;
 
+    float bestScore = -1e9f;
+    bool found = false;
+
     for (int i = MAX_RECORDS - 1; i >= 0; i--) {
         int idx = (wi - 1 - i + MAX_RECORDS) % MAX_RECORDS;
         auto& rec = records[playerIdx][idx];
@@ -395,10 +398,31 @@ bool AimController::GetBestBacktrack(int playerIdx, Vector3& outPos) {
         float dt = records[playerIdx][refIdx].simulationTime - rec.simulationTime;
         if (dt > maxTime) continue;
 
-        outPos = rec.bonePos[6]; // head
-        return true;
+        // Lag compensation detection: skip records with dramatic position changes
+        // (teleport/LC break — delta > 50 units in one tick)
+        int nextIdx = (idx + 1) % MAX_RECORDS;
+        if (records[playerIdx][nextIdx].valid) {
+            float posDelta = rec.origin.DistTo(records[playerIdx][nextIdx].origin);
+            if (posDelta > 50.0f) continue;
+        }
+
+        // Prefer records closest to max allowed time for best lag comp
+        float timeScore = dt / maxTime;
+
+        // Distance-based scoring: closer records = better lag comp benefit
+        Vector3 eye = {}; // approximate from local player
+        float dist = rec.bonePos[6].DistTo(outPos);
+        float distScore = 1.0f / (1.0f + dist * 0.001f);
+
+        float score = timeScore * 0.7f + distScore * 0.3f;
+
+        if (score > bestScore) {
+            bestScore = score;
+            outPos = rec.bonePos[6]; // head
+            found = true;
+        }
     }
-    return false;
+    return found;
 }
 
 // ==================== SHOT EXECUTION ====================

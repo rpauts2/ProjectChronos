@@ -7,7 +7,8 @@ enum ResolverMode {
     RESOLVER_LBY,            // Lower Body Yaw tracking
     RESOLVER_FREESTANDING,   // Freestanding (wall orientation)
     RESOLVER_BRUTEFORCE,     // Brute-force through angles
-    RESOLVER_BACKTRACK       // Use history to find real angle
+    RESOLVER_BACKTRACK,      // Use history to find real angle
+    RESOLVER_DESYNC          // Desync detection via eye/body angle delta
 };
 
 struct PlayerAngleData {
@@ -34,6 +35,26 @@ struct PlayerAngleData {
     QAngle lastEyeAngle;
     bool wasMoving = false;
     float stationaryTime = 0;
+
+    // Anti-aim detection
+    bool isAntiAiming = false;
+    float lastSimTime = 0;
+    float lbyUpdateTimer = 0;
+    bool lbyFlicked = false;
+    int antiAimSide = 0; // -1=left, 0=center, 1=right
+
+    // Freestanding wall detection
+    float freestandingAngle = 0;
+    bool hasFreestanding = false;
+
+    // Animation layer data
+    float lastBodyYaw = 0;
+    float eyeToBodyDelta = 0;
+
+    // Brute force miss tracking (weighted)
+    int recentMisses[8] = {};
+    int recentHits[8] = {};
+    int bruteHistoryIdx = 0;
 };
 
 class Resolver {
@@ -63,6 +84,7 @@ public:
     QAngle ResolveFreestanding(Player* player, QAngle aimAngle);
     QAngle ResolveBruteforce(Player* player, QAngle aimAngle, int playerIndex = -1);
     QAngle ResolveBacktrack(Player* player, QAngle aimAngle, int playerIndex = -1);
+    QAngle ResolveDesync(Player* player, QAngle aimAngle, int playerIndex);
 
     // Update tracking data
     void UpdatePlayerData(Player* player, int playerIndex);

@@ -114,6 +114,7 @@ public:
                 health = mem->Read<int>(controller + offsets.m_iPawnHealth);
                 if (health <= 0 || health > 100) continue;
             }
+            if (health <= 0) continue;
 
             int team = mem->Read<uint8_t>(pawn + offsets.m_iTeamNum);
             if (team != 2 && team != 3) continue;

@@ -376,6 +376,7 @@ void Overlay::RenderExploitFlash() {
 
 void Overlay::Render(GameState* state, ExploitSelector* selector, AimController* aimController) {
     if (!initialized || !state) { return; }
+    if (!device || !context || !rtView) { return; }
     cachedAim = aimController;
 
     // Init smooth boxes on first frame
@@ -449,6 +450,7 @@ void Overlay::Render(GameState* state, ExploitSelector* selector, AimController*
 // ==================== DRAWING PRIMITIVES ====================
 
 void Overlay::BeginDraw() {
+    if (!context || !rtView) return;
     context->OMSetRenderTargets(1, &rtView, nullptr);
     float clear[] = {0, 0, 0, 0};
     context->ClearRenderTargetView(rtView, clear);
@@ -626,6 +628,7 @@ bool Overlay::GetPlayerBox(GameState* state, int idx, int& outX, int& outY, int&
 }
 
 void Overlay::DrawBoneLine(Vector3 from, Vector3 to, float* vm, float* color) {
+    if (!vm) return;
     Vector2 sFrom, sTo;
     if (!WorldToScreen(from, sFrom, vm)) return;
     if (!WorldToScreen(to, sTo, vm)) return;
@@ -2130,6 +2133,12 @@ void Overlay::DrawChams(GameState* state) {
         bool hasLFoot = WorldToScreen(p.bonePos[24], lFootScr, vm);
         bool hasRFoot = WorldToScreen(p.bonePos[27], rFootScr, vm);
 
+        Vector2 lShoulderScr, rShoulderScr, lKneeScr, rKneeScr;
+        bool hasLShoulder = WorldToScreen(p.bonePos[8], lShoulderScr, vm);
+        bool hasRShoulder = WorldToScreen(p.bonePos[13], rShoulderScr, vm);
+        bool hasLKnee = WorldToScreen(p.bonePos[23], lKneeScr, vm);
+        bool hasRKnee = WorldToScreen(p.bonePos[26], rKneeScr, vm);
+
         float distFade = 1.0f;
         auto* local = state->GetLocal();
         if (local) {
@@ -2153,8 +2162,6 @@ void Overlay::DrawChams(GameState* state) {
             chamsCol[3] = settings.chamsHiddenColor[3] * distFade;
         }
 
-        ImU32 col = ImGui::GetColorU32(ImVec4(chamsCol[0], chamsCol[1], chamsCol[2], chamsCol[3]));
-
         float playerH = feetScr.y - headScr.y;
         if (playerH < 5.0f) continue;
 
@@ -2162,8 +2169,49 @@ void Overlay::DrawChams(GameState* state) {
         float headR = playerH * 0.08f;
         float limbW = playerH * 0.06f;
 
+        // === OUTER DARKER LAYER (glow outline) ===
+        float outerCol[4] = {
+            chamsCol[0] * 0.4f, chamsCol[1] * 0.4f, chamsCol[2] * 0.4f,
+            chamsCol[3] * 0.35f
+        };
+        ImU32 outerC = ImGui::GetColorU32(ImVec4(outerCol[0], outerCol[1], outerCol[2], outerCol[3]));
+
+        // Outer head circle
+        dl->AddCircleFilled(ImVec2(headScr.x, headScr.y), headR * 2.2f, outerC, 16);
+
+        // Outer body (wider quad)
+        float outerShoulderW = bodyW * 1.1f;
+        float outerPelvisW = bodyW * 0.8f;
+        dl->AddQuadFilled(
+            ImVec2(chestScr.x - outerShoulderW, chestScr.y - playerH * 0.01f),
+            ImVec2(chestScr.x + outerShoulderW, chestScr.y - playerH * 0.01f),
+            ImVec2(pelvisScr.x + outerPelvisW, pelvisScr.y + playerH * 0.01f),
+            ImVec2(pelvisScr.x - outerPelvisW, pelvisScr.y + playerH * 0.01f),
+            outerC);
+
+        // Outer limbs
+        if (hasLShoulder && hasLHand)
+            dl->AddLine(ImVec2(chestScr.x - outerShoulderW, chestScr.y),
+                        ImVec2(lHandScr.x, lHandScr.y), outerC, limbW * 2.0f);
+        if (hasRShoulder && hasRHand)
+            dl->AddLine(ImVec2(chestScr.x + outerShoulderW, chestScr.y),
+                        ImVec2(rHandScr.x, rHandScr.y), outerC, limbW * 2.0f);
+
+        float hipW = bodyW * 0.35f;
+        if (hasLKnee && hasLFoot)
+            dl->AddLine(ImVec2(pelvisScr.x - hipW, pelvisScr.y),
+                        ImVec2(lFootScr.x, lFootScr.y), outerC, limbW * 2.4f);
+        if (hasRKnee && hasRFoot)
+            dl->AddLine(ImVec2(pelvisScr.x + hipW, pelvisScr.y),
+                        ImVec2(rFootScr.x, rFootScr.y), outerC, limbW * 2.4f);
+
+        // === MIDDLE LAYER (main body fill) ===
+        ImU32 col = ImGui::GetColorU32(ImVec4(chamsCol[0], chamsCol[1], chamsCol[2], chamsCol[3]));
+
+        // Head
         dl->AddCircleFilled(ImVec2(headScr.x, headScr.y), headR, col, 12);
 
+        // Torso: multi-segment body shape using bone positions
         float shoulderW = bodyW * 0.85f;
         ImVec2 chestL(chestScr.x - shoulderW, chestScr.y);
         ImVec2 chestR(chestScr.x + shoulderW, chestScr.y);
@@ -2171,22 +2219,47 @@ void Overlay::DrawChams(GameState* state) {
         ImVec2 pelvisR(pelvisScr.x + bodyW * 0.6f, pelvisScr.y);
         dl->AddQuadFilled(chestL, chestR, pelvisR, pelvisL, col);
 
+        // Neck bridge
         ImVec2 neckL(chestScr.x - shoulderW * 0.5f, chestScr.y - playerH * 0.02f);
         ImVec2 neckR(chestScr.x + shoulderW * 0.5f, chestScr.y - playerH * 0.02f);
         ImVec2 headBL(headScr.x - headR * 0.8f, headScr.y + headR * 0.5f);
         ImVec2 headBR(headScr.x + headR * 0.8f, headScr.y + headR * 0.5f);
         dl->AddQuadFilled(neckL, neckR, headBR, headBL, col);
 
-        if (hasLHand)
+        // Arms (shoulder to hand via elbow bone)
+        if (hasLShoulder && hasLHand)
             dl->AddLine(ImVec2(chestScr.x - shoulderW, chestScr.y), ImVec2(lHandScr.x, lHandScr.y), col, limbW);
-        if (hasRHand)
+        if (hasRShoulder && hasRHand)
             dl->AddLine(ImVec2(chestScr.x + shoulderW, chestScr.y), ImVec2(rHandScr.x, rHandScr.y), col, limbW);
 
-        float hipW = bodyW * 0.35f;
-        if (hasLFoot)
+        // Legs (pelvis to foot via knee bone)
+        if (hasLKnee && hasLFoot)
             dl->AddLine(ImVec2(pelvisScr.x - hipW, pelvisScr.y), ImVec2(lFootScr.x, lFootScr.y), col, limbW * 1.2f);
-        if (hasRFoot)
+        if (hasRKnee && hasRFoot)
             dl->AddLine(ImVec2(pelvisScr.x + hipW, pelvisScr.y), ImVec2(rFootScr.x, rFootScr.y), col, limbW * 1.2f);
+
+        // === INNER BRIGHT LAYER (highlight core) ===
+        float innerCol[4] = {
+            (std::min)(1.0f, chamsCol[0] + 0.35f),
+            (std::min)(1.0f, chamsCol[1] + 0.35f),
+            (std::min)(1.0f, chamsCol[2] + 0.35f),
+            chamsCol[3] * 0.6f
+        };
+        ImU32 innerC = ImGui::GetColorU32(ImVec4(innerCol[0], innerCol[1], innerCol[2], innerCol[3]));
+
+        // Inner head core
+        dl->AddCircleFilled(ImVec2(headScr.x, headScr.y), headR * 0.5f, innerC, 8);
+
+        // Inner torso highlight (narrower)
+        float innerShoulderW = shoulderW * 0.5f;
+        float innerPelvisW = bodyW * 0.35f;
+        float midY = (chestScr.y + pelvisScr.y) * 0.5f;
+        dl->AddQuadFilled(
+            ImVec2(chestScr.x - innerShoulderW, chestScr.y + playerH * 0.03f),
+            ImVec2(chestScr.x + innerShoulderW, chestScr.y + playerH * 0.03f),
+            ImVec2(pelvisScr.x + innerPelvisW, pelvisScr.y - playerH * 0.03f),
+            ImVec2(pelvisScr.x - innerPelvisW, pelvisScr.y - playerH * 0.03f),
+            innerC);
     }
 }
 
@@ -2516,6 +2589,7 @@ void Overlay::RenderStatus(GameState* state, ExploitSelector*, AimController* ai
 // Исправленная математика: жесткая привязка к Row-Major
 bool Overlay::WorldToScreen(Vector3 wp, Vector2& sp, float* m) {
     if (!m) return false;
+    if (!std::isfinite(wp.x) || !std::isfinite(wp.y) || !std::isfinite(wp.z)) return false;
 
     float w = wp.x * m[12] + wp.y * m[13] + wp.z * m[14] + m[15];
     if (w < 0.001f) return false;

@@ -91,7 +91,7 @@ public:
         bool valid;
     };
 
-    static constexpr int MAX_RECORDS = 64;
+    static constexpr int MAX_RECORDS = 128;
     static constexpr int MAX_PLAYERS = 64;
 
     TickRecord records[MAX_PLAYERS][MAX_RECORDS];
